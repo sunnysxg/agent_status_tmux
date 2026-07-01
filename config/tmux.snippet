@@ -1,0 +1,9 @@
+# --- tmux-agent-status (append to ~/.tmux.conf) ---
+# Replace @HOOKS_DIR@ with install path, e.g. ~/.claude/hooks
+
+set -g status-interval 30
+set-hook -g pane-focus-in 'run-shell "@HOOKS_DIR@/tmux-agent-mark-seen.sh #{pane_id}"'
+set -g window-status-format '#I:#W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at} #{?@agent_seen,#{@agent_seen},0}),}#F'
+set -g window-status-current-format '#I:#W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at} #{?@agent_seen,#{@agent_seen},0}),}#F'
+set -gu window-status-style
+set -g window-status-current-style 'fg=colour255,bg=colour232,bold'

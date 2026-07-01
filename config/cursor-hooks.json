@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      {
+        "command": "./hooks/tmux-agent-status.sh '⚡'",
+        "timeout": 3
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "./hooks/tmux-agent-status.sh '⚡'",
+        "timeout": 3
+      }
+    ],
+    "stop": [
+      {
+        "command": "./hooks/tmux-agent-status.sh '✅'",
+        "timeout": 3
+      }
+    ]
+  }
+}
