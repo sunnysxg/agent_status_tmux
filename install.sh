@@ -14,7 +14,7 @@ CURSOR_HOOKS_DIR="${HOME}/.cursor/hooks"
 
 mkdir -p "$HOOKS_DIR" "$CURSOR_HOOKS_DIR"
 
-for script in tmux-agent-status.sh tmux-agent-freshness.sh tmux-agent-freshness-text.sh tmux-agent-mark-seen.sh tmux-agent-demo.sh tmux-agent-tab-style.sh tmux-agent-ring-bell.sh tmux-window-label.sh tmux-window-format.sh; do
+for script in tmux-agent-status.sh tmux-agent-freshness.sh tmux-agent-freshness-colored.sh tmux-agent-freshness-text.sh tmux-agent-mark-seen.sh tmux-agent-demo.sh tmux-agent-tab-style.sh tmux-agent-ring-bell.sh tmux-window-label.sh tmux-window-format.sh; do
   ln -sfn "${REPO_DIR}/hooks/${script}" "${HOOKS_DIR}/${script}"
   chmod +x "${REPO_DIR}/hooks/${script}"
 done
@@ -31,11 +31,11 @@ echo "  (tmux freshness / mark-seen also read from here via ~/.tmux.conf)"
 echo "Cursor hook entry → ${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
 echo "Claude hook config → merge config/claude-hooks.json into ~/.claude/settings.json"
 echo
-echo "Manual merge (one-time):"
-echo "  1. ~/.tmux.conf        ← config/tmux.snippet"
-echo "  2. ~/.cursor/hooks.json ← config/cursor-hooks.json"
-echo "  3. ~/.claude/settings.json ← config/claude-hooks.json (hooks section)"
-echo "  4. tmux source-file ~/.tmux.conf"
+echo "Manual merge (one-time, pick ONE tmux profile):"
+echo "  DIY:        ~/.tmux.conf ← config/tmux.snippet"
+echo "  Oh my tmux: ~/.tmux.conf.local ← config/oh-my-tmux.local.snippet"
+echo "  Both need:  ~/.cursor/hooks.json, ~/.claude/settings.json (hooks section)"
+echo "  Then:       tmux source-file ~/.tmux.conf"
 echo
 echo "Generated tmux snippet (HOOKS_DIR=${HOOKS_DIR}):"
 sed "s|@HOOKS_DIR@|${HOOKS_DIR}|g" "${REPO_DIR}/config/tmux.snippet"

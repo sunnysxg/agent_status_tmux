@@ -4,8 +4,8 @@
 # 前置：安装 Oh my tmux → ~/.local/share/tmux/oh-my-tmux，~/.tmux.conf 链过去
 
 # --- window tab：agent badge + 全名 ---
-tmux_conf_theme_window_status_format="#I #W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at} #{?@agent_seen,#{@agent_seen},0}),}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
-tmux_conf_theme_window_status_current_format="#I #W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at} #{?@agent_seen,#{@agent_seen},0}),}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
+tmux_conf_theme_window_status_format="#I #W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at}),}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
+tmux_conf_theme_window_status_current_format="#I #W#{?@agent_done_at,,#{?@agent, #{@agent},}}#{?@agent_done_at, #(@HOOKS_DIR@/tmux-agent-freshness.sh #{@agent_done_at}),}#{?#{||:#{window_bell_flag},#{window_zoomed_flag}}, ,}#{?window_bell_flag,!,}#{?window_zoomed_flag,Z,}"
 
 # --- activity 下划线关掉（agent 刷 log 噪声大）---
 tmux_conf_theme_window_status_activity_attr="none"

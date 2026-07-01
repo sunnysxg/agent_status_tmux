@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-# Render done-agent badge (replaces ✅): minutes/hours/🗑 with seen/unseen styling.
-# Usage: tmux-agent-freshness.sh <unix_epoch> [seen: 0|1]
+# Plain done-agent time badge (Oh my tmux bell styles the tab; no inline #[...] here).
+# Usage: tmux-agent-freshness.sh <unix_epoch> [seen: ignored]
 
 set -euo pipefail
 
 done_at="${1:-}"
-seen="${2:-0}"
 [[ -z "$done_at" || ! "$done_at" =~ ^[0-9]+$ ]] && exit 0
-[[ ! "$seen" =~ ^[01]$ ]] && seen=0
 
 now=$(date +%s)
 age=$((now - done_at))
@@ -16,33 +14,13 @@ age=$((now - done_at))
 if (( age < 1800 )); then
   label=$(( age / 60 ))
   (( label < 1 )) && label=1
-  text="${label}m"
-  if (( seen == 0 )); then
-    printf '#[bg=colour82,fg=colour232,bold]%s#[default]' "$text"
-  else
-    printf '#[fg=colour82]%s#[default]' "$text"
-  fi
+  printf '%dm' "$label"
 elif (( age < 7200 )); then
-  label=$(( age / 60 ))
-  text="${label}m"
-  if (( seen == 0 )); then
-    printf '#[bg=colour248,fg=colour232,bold]%s#[default]' "$text"
-  else
-    printf '#[fg=colour226]%s#[default]' "$text"
-  fi
+  printf '%dm' "$((age / 60))"
 elif (( age < 28800 )); then
   label=$(( age / 3600 ))
   (( label < 1 )) && label=1
-  text="${label}h"
-  if (( seen == 0 )); then
-    printf '#[bg=colour250,fg=colour232,bold]%s#[default]' "$text"
-  else
-    printf '#[fg=colour243]%s#[default]' "$text"
-  fi
+  printf '%dh' "$label"
 else
-  if (( seen == 0 )); then
-    printf '#[bg=colour203,fg=colour232,bold]🗑#[default]'
-  else
-    printf '#[fg=colour203]🗑#[default]'
-  fi
+  printf '🗑'
 fi
