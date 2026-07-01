@@ -14,12 +14,15 @@ CURSOR_HOOKS_DIR="${HOME}/.cursor/hooks"
 
 mkdir -p "$HOOKS_DIR" "$CURSOR_HOOKS_DIR"
 
-for script in tmux-agent-status.sh tmux-agent-freshness.sh tmux-agent-mark-seen.sh tmux-agent-demo.sh; do
+for script in tmux-agent-status.sh tmux-agent-freshness.sh tmux-agent-freshness-text.sh tmux-agent-mark-seen.sh tmux-agent-demo.sh tmux-agent-tab-style.sh tmux-agent-ring-bell.sh tmux-window-label.sh tmux-window-format.sh; do
   ln -sfn "${REPO_DIR}/hooks/${script}" "${HOOKS_DIR}/${script}"
   chmod +x "${REPO_DIR}/hooks/${script}"
 done
 
 ln -sfn "${HOOKS_DIR}/tmux-agent-status.sh" "${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
+for script in tmux-agent-ring-bell.sh tmux-agent-freshness.sh tmux-agent-mark-seen.sh; do
+  ln -sfn "${HOOKS_DIR}/${script}" "${CURSOR_HOOKS_DIR}/${script}"
+done
 
 echo "tmux-agent-status — supports Claude Code + Cursor Agent"
 echo
