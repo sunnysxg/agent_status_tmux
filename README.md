@@ -1,14 +1,26 @@
 # tmux-agent-status
 
-在 tmux 窗口列表里显示 Claude Code / Cursor Agent 的运行状态：运行中 `⚡`、等待授权 `⏸`、跑完后用时间 badge 代替 `✅`，并区分未看 / 已看。
+在 tmux 窗口列表里显示 **Claude Code** 和 **Cursor Agent** 的运行状态：运行中 `⚡`、等待授权 `⏸`（Claude）、跑完后用时间 badge 代替 `✅`，并区分未看 / 已看。
+
+**当前版本：** [v1.0.0](CHANGELOG.md) — 第一个可用版本
+
+## 支持的 Agent
+
+| Agent | Hook 配置位置 | 触发事件 | 备注 |
+|-------|---------------|----------|------|
+| **Claude Code** | `~/.claude/settings.json` | `PreToolUse` ⚡ · `Stop` ✅ · `Notification` ⏸ | 完整三态 |
+| **Cursor Agent** | `~/.cursor/hooks.json` | `beforeSubmitPrompt` / `preToolUse` ⚡ · `stop` ✅ | 无 ⏸ 等价 hook |
+
+**共享部分：** 四个 shell 脚本 + `~/.tmux.conf` 里的 status line 渲染。  
+两套 Agent **各读各自的 hook 配置文件**，但都调用同一套脚本。
 
 ## 机制
 
 ```
-Agent hook → tmux-agent-status.sh → tmux window 变量 (@agent / @agent_done_at / @agent_seen)
+Claude / Cursor hook → tmux-agent-status.sh → tmux window 变量
                                               ↓
                               ~/.tmux.conf status line 渲染 badge
-切进窗口   → pane-focus-in → tmux-agent-mark-seen.sh → @agent_seen=1
+切进窗口 → pane-focus-in → tmux-agent-mark-seen.sh → @agent_seen=1
 ```
 
 ## 文件
@@ -27,11 +39,20 @@ Agent hook → tmux-agent-status.sh → tmux window 变量 (@agent / @agent_done
 
 ```bash
 cd tmux-agent-status
-./install.sh          # 默认链接到 ~/.claude/hooks
-./install.sh ~/my/hooks # 自定义目录
+./install.sh              # 脚本默认链到 ~/.claude/hooks
+./install.sh ~/my/hooks   # 自定义脚本目录
 ```
 
-把 `install.sh` 输出的 tmux snippet 合并进 `~/.tmux.conf`，再合并 Cursor / Claude 的 hooks 配置。  
+`install.sh` 只做**脚本 symlink**（+ Cursor 入口链）。还需手动合并三处配置：
+
+| 配置 | 模板 |
+|------|------|
+| tmux status line | `config/tmux.snippet` → `~/.tmux.conf` |
+| Cursor hooks | `config/cursor-hooks.json` → `~/.cursor/hooks.json` |
+| Claude hooks | `config/claude-hooks.json` → `~/.claude/settings.json` |
+
+默认脚本目录用 `~/.claude/hooks` 只是历史习惯（Claude 侧最早放这里），**不是只支持 Claude**——Cursor 通过 `~/.cursor/hooks/tmux-agent-status.sh` 链到同一脚本。
+
 **必须在 tmux pane 里启动 agent**，hook 子进程才能继承 `$TMUX_PANE`。
 
 ## Badge 规则

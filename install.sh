@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-# Install tmux-agent-status hooks and print merge instructions.
+# Install tmux-agent-status (Claude Code + Cursor Agent).
 # Usage: ./install.sh [hooks_dir]
+#
+# Scripts land in one shared hooks_dir (default ~/.claude/hooks).
+# Cursor and Claude each have their own hook config file elsewhere;
+# this script links scripts + prints what to merge for both.
 
 set -euo pipefail
 
@@ -17,14 +21,18 @@ done
 
 ln -sfn "${HOOKS_DIR}/tmux-agent-status.sh" "${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
 
-echo "Installed hooks → ${HOOKS_DIR}"
-echo "Cursor entry  → ${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
+echo "tmux-agent-status — supports Claude Code + Cursor Agent"
 echo
-echo "Next steps:"
-echo "  1. Merge config/tmux.snippet into ~/.tmux.conf (@HOOKS_DIR@ → ${HOOKS_DIR})"
-echo "  2. Merge config/cursor-hooks.json into ~/.cursor/hooks.json"
-echo "  3. Merge config/claude-hooks.json hooks into ~/.claude/settings.json"
+echo "Shared scripts → ${HOOKS_DIR}"
+echo "  (tmux freshness / mark-seen also read from here via ~/.tmux.conf)"
+echo "Cursor hook entry → ${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
+echo "Claude hook config → merge config/claude-hooks.json into ~/.claude/settings.json"
+echo
+echo "Manual merge (one-time):"
+echo "  1. ~/.tmux.conf        ← config/tmux.snippet"
+echo "  2. ~/.cursor/hooks.json ← config/cursor-hooks.json"
+echo "  3. ~/.claude/settings.json ← config/claude-hooks.json (hooks section)"
 echo "  4. tmux source-file ~/.tmux.conf"
 echo
-echo "Generated snippet:"
+echo "Generated tmux snippet (HOOKS_DIR=${HOOKS_DIR}):"
 sed "s|@HOOKS_DIR@|${HOOKS_DIR}|g" "${REPO_DIR}/config/tmux.snippet"
