@@ -2,6 +2,9 @@
 # Set tmux window agent status for the pane running Claude/Cursor agent.
 # Usage: tmux-agent-status.sh <emoji>
 # Requires: tmux, TMUX_PANE in environment (inherited from hook subprocess).
+#
+# Keep this script emoji-only (Claude Notification → ⏸, PreToolUse → ⚡, Stop → ✅).
+# Cursor confirm-dialog scan lives in hooks/cursor-wait/idle-scan.sh (calls this with ⏸).
 
 set -euo pipefail
 

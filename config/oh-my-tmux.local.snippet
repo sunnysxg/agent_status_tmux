@@ -23,8 +23,11 @@ tmux_conf_theme_status_left=" ❐ #S "
 # set -g mouse on #!important
 # setw -g mode-keys vi #!important
 # set -g focus-events on #!important
-# set -g status-interval 30 #!important
+# set -g status-interval 5 #!important
 # set -g monitor-activity off #!important
 # set -g visual-bell on #!important
 # set-hook -g pane-focus-in 'run-shell "@HOOKS_DIR@/tmux-agent-mark-seen.sh #{pane_id}"' #!important
 # bind w choose-window -Z #!important
+# Cursor wait (optional): prefix status_right with
+#   #($HOME/.cursor/hooks/cursor-wait/idle-scan.sh)
+# Stable bottom text ≥4s + markers only; hooks stay simple ⚡/✅

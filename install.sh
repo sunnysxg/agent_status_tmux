@@ -19,16 +19,21 @@ for script in tmux-agent-status.sh tmux-agent-freshness.sh tmux-agent-freshness-
   chmod +x "${REPO_DIR}/hooks/${script}"
 done
 
+chmod +x "${REPO_DIR}/hooks/cursor-wait/"*.sh 2>/dev/null || true
+
 ln -sfn "${HOOKS_DIR}/tmux-agent-status.sh" "${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
 for script in tmux-agent-ring-bell.sh tmux-agent-freshness.sh tmux-agent-mark-seen.sh; do
   ln -sfn "${HOOKS_DIR}/${script}" "${CURSOR_HOOKS_DIR}/${script}"
 done
+# Cursor-only wait dialog scan (hooks stay on simple tmux-agent-status.sh)
+ln -sfn "${REPO_DIR}/hooks/cursor-wait" "${CURSOR_HOOKS_DIR}/cursor-wait"
 
 echo "tmux-agent-status — supports Claude Code + Cursor Agent"
 echo
 echo "Shared scripts → ${HOOKS_DIR}"
 echo "  (tmux freshness / mark-seen also read from here via ~/.tmux.conf)"
-echo "Cursor hook entry → ${CURSOR_HOOKS_DIR}/tmux-agent-status.sh"
+echo "Cursor hooks → ${CURSOR_HOOKS_DIR}/tmux-agent-status.sh (⚡/✅)"
+echo "Cursor wait scan → ${CURSOR_HOOKS_DIR}/cursor-wait/idle-scan.sh (optional status #())"
 echo "Claude hook config → merge config/claude-hooks.json into ~/.claude/settings.json"
 echo
 echo "Manual merge (one-time, pick ONE tmux profile):"

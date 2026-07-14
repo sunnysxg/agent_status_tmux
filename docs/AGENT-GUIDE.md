@@ -2,162 +2,140 @@
 
 面向将来接手的 agent / 人类。描述**当前在用**的完整方案（hooks + Oh my tmux!）。
 
+实现仓库：`HzyProjects/tmux-agent-status`（`git@github.com:sunnysxg/agent_status_tmux.git`）。  
+本机 permanent 总览另见 `~/.claude/docs/tmux-multi-agent-status.md`（须与本文一致）。
+
 ---
 
 ## 架构一览
 
 ```
 Claude Code / Cursor Agent
-    │  stop → ✅ / preToolUse → ⚡
+    │  Claude: PreToolUse→⚡  Notification→⏸  Stop→✅
+    │  Cursor hooks: beforeSubmitPrompt/preToolUse→⚡  stop→✅
     ▼
-~/.claude/hooks/tmux-agent-status.sh  （Cursor 从 ~/.cursor/hooks/ 链过来）
+~/.claude/hooks/tmux-agent-status.sh   （只写 emoji；Cursor symlink 到此）
     │  写 @agent / @agent_done_at / @agent_seen
-    │  done 时 → tmux-agent-ring-bell.sh
+    │  ✅ 时 → tmux-agent-ring-bell.sh
     ▼
-~/.tmux.conf.local  （Oh my tmux 主题 + window format）
-    │  Powerline 箭头 tab + 纯文字时间 badge（bell 外层变黄）
+~/.tmux.conf.local（Oh my tmux）
+    │  window tab 显示 ⚡/⏸/时间 badge + bell
+    │  status-right #(…/cursor-wait/idle-scan.sh)  ← Cursor 确认框补 ⏸（可删）
     ▼
 tmux status line
-    │
+
 切进窗口 → pane-focus-in → tmux-agent-mark-seen.sh → seen=1
 ```
-
-**两套 hook 配置、一套脚本：**
 
 | 组件 | 路径 |
 |------|------|
 | 脚本仓库 | `HzyProjects/tmux-agent-status/` |
-| 脚本 symlink | `~/.claude/hooks/` |
-| Cursor 入口 | `~/.cursor/hooks.json` + `~/.cursor/hooks/*.sh` |
-| Claude 入口 | `~/.claude/settings.json` → hooks |
-| Oh my tmux 本体 | `~/.local/share/tmux/oh-my-tmux/` |
-| 主配置 | `~/.tmux.conf` → oh-my-tmux |
+| 共享脚本 symlink | `~/.claude/hooks/` |
+| Cursor hooks + wait 模块 | `~/.cursor/hooks.json`、`~/.cursor/hooks/`（含 `cursor-wait/`） |
+| Claude hooks | `~/.claude/settings.json` |
+| Oh my tmux | `~/.local/share/tmux/oh-my-tmux/` ← `~/.tmux.conf` |
 | 自定义 | `~/.tmux.conf.local` |
 
 ---
 
 ## 版本与配置
 
-- **`master` / tag `v1.1.0`** — 默认：Oh my tmux + bell + 纯文字 badge
-- **`config/tmux.snippet`** — DIY 绿底 + 彩色 badge（`tmux-agent-freshness-colored.sh`）
-- tag `v1.0.0` — 历史快照，等同 DIY 初版
-
-**共用：** `hooks/` 里所有脚本 + Claude/Cursor hook 注册逻辑  
-**分开：** 选 Oh my tmux 片段 **或** DIY 片段写入 tmux 配置
+- **`master` / tag `v1.1.0`** — Oh my tmux + bell + 纯文字 badge
+- **Unreleased（2026-07-13）** — `hooks/cursor-wait/`：仅两种 Cursor CLI 确认框 → ⏸
+- DIY：`config/tmux.snippet` + `tmux-agent-freshness-colored.sh`
 
 ---
 
 ## Window 变量
 
-| 变量 | 设置时机 | 含义 |
-|------|----------|------|
-| `@agent` | ⚡ / ⏸ | 运行中 / 等待 |
-| `@agent_done_at` | stop(✅) | 完成 unix 时间 |
-| `@agent_seen` | stop→0；切进 pane→1 | 未看 / 已看 |
-| `window_bell_flag` | ring-bell | 完成提醒（tmux 内置） |
+| 变量 | 谁写 | 含义 |
+|------|------|------|
+| `@agent` | status.sh / idle-scan | ⚡ 运行 / ⏸ 等待 |
+| `@agent_done_at` | status.sh（✅） | 完成 unix 时间 |
+| `@agent_seen` | status / mark-seen | 未看 0 / 已看 1 |
+| `@cursor_wait_hash` / `_hash_at` / `_bell_at` | idle-scan 专用 | 底部稳定性与响铃冷却；可随模块删掉 |
+
+---
+
+## Cursor wait（`hooks/cursor-wait/`）
+
+**独立模块，不进 Claude hooks，也不改 Cursor hooks 主路径。**
+
+| 条件（须同时满足） | 动作 |
+|--------------------|------|
+| `@agent` 为 ⚡ | 只扫工作中窗口 |
+| 底部约 16 行内容哈希 **不变 ≥4s** | 屏幕已停住 |
+| 出现 `Approve mode switch (y)` 或 `Yes, build locally (b)` | 固定选项行 |
+
+→ 标 ⏸；响铃有约 120s 冷却。
+
+**不要做的事（已踩坑）：** 不要用「hook 静默超时」当等待；不要扫太深 scrollback；不要在 hooks 里塞 from-hook 判态——会导致 ⚡⇄⏸ 狂切和 bell 轰炸。
+
+**退役：** 从 `tmux_conf_theme_status_right` 去掉 idle-scan 的 `#()`；可删 `~/.cursor/hooks/cursor-wait` symlink。hooks.json 保持简单 ⚡/✅ 即可。
+
+本机：`status-interval 5`（配合 ≥4s 稳定判定）。
 
 ---
 
 ## 显示规则（当前）
 
-| 状态 | tab 外观 | 时间 badge |
-|------|----------|------------|
-| ⚡ 运行中 | 普通 tab + `⚡` | 无 |
-| done 未看（**不在该 tab**） | **bell 黄闪** + `!` + 箭头 bell 色 | 纯文字 `5m` / `4h` / `🗑`（随 tab 变黄） |
-| done 未看（**正在该 tab**） | 无 bell（选中即清） | 纯文字 |
-| done 已看 | 普通 tab | 纯文字 |
+| 状态 | tab | 时间 badge |
+|------|-----|------------|
+| ⚡ / ⏸ | 普通 tab + emoji | 无 |
+| done 未看（不在该 tab） | bell 黄闪 + `!` | 纯文字 `5m` / `4h` / `🗑` |
+| done 未看（正在该 tab） | 无 bell | 纯文字 |
+| done 已看 | 普通 | 纯文字 |
 
-新鲜度阈值：30min / 2h / 8h（见 `tmux-agent-freshness.sh`）。
-
----
-
-## 重要踩坑（必读）
-
-### 1. Cursor 与 Claude 路径不同
-
-- Claude：`~/.claude/hooks/tmux-agent-status.sh`（绝对路径）
-- Cursor：`~/.cursor/hooks.json`，cwd 为 `~/.cursor/`
-
-**子脚本必须用 `readlink -f "${BASH_SOURCE[0]}"` 找 HOOKS_DIR**，不能 `dirname $0` 拼相对路径。  
-曾因此 **ring-bell 在 Cursor 下静默失败**（`~/.cursor/hooks/` 里缺 symlink）。
-
-`install.sh` 会给 Cursor 链：`status` / `ring-bell` / `freshness` / `mark-seen`。
-
-### 2. mark-seen 读 window 选项
-
-❌ `tmux show-options -p @agent_done_at`（pane 选项，读不到）  
-✅ `tmux display-message -p -t "$pane" '#{@agent_done_at}'`
-
-### 3. bell 触发方式
-
-❌ `tmux send-keys $'\a'`（送给应用，不置 bell flag）  
-✅ `printf '\a' > "$(tmux display -p -t pane '#{pane_tty}')"`
-
-### 4. bell 与「正在看的窗口」
-
-tmux 规则：**选中 window 会清 bell**。agent 在当前 tab 跑完时看不到 bell，靠纯文字时间；**后台 tab 跑完**才有 bell。
-
-### 5. activity 下划线
-
-Oh my tmux 默认 `monitor-activity on` + activity 下划线。agent 窗口几乎永远有输出 → 全下划线。  
-已关：`monitor-activity off` + `activity_attr=none`。
-
-### 6. Oh my tmux 箭头 vs agent 配色
-
-- **箭头颜色**由 tmux 五态控制：current / last / bell / activity / normal
-- **不能**按 `@agent` 给每个 window 单独设箭头色（除非 fork `_apply_theme`）
-- **bell 态**会连箭头一起变色 → 当前用 bell 强调「done 未看」
-- tab **中间内容**不要用 `#[...]` 上色（会破坏 Powerline 箭头）；用纯文字 + bell 外层配色
-
-### 7. 必须在 tmux pane 里跑 agent
-
-hook 子进程需继承 `$TMUX_PANE`，否则脚本 no-op。
+新鲜度：30min / 2h / 8h（`tmux-agent-freshness.sh` 纯文字；字色方案另见后续提交）。
 
 ---
 
-## 从零恢复（当前样式）
+## 重要踩坑
+
+1. **Cursor cwd 是 `~/.cursor/`**，hooks 用 `./hooks/...`；子脚本用 `readlink -f` 找目录。`install.sh` 链 status / ring-bell / freshness / mark-seen，以及 `cursor-wait/`。
+2. mark-seen 读 **window** 选项：`tmux display-message -p -t "$pane" '#{@agent_done_at}'`
+3. bell：`printf '\a' > pane_tty`，不要 `send-keys $'\a'`
+4. 选中 window 会清 bell；当前 tab 跑完看不到 bell，靠时间文字
+5. 已关 `monitor-activity`（agent 刷 log 会全下划线）
+6. tab 中间不要 `#[...]` 上色（会拆 Powerline 箭头）
+7. **必须在 tmux pane 里启动** agent，否则无 `$TMUX_PANE`
+
+---
+
+## 从零恢复
 
 ```bash
-# 1. hooks
-cd ~/HzyProjects/tmux-agent-status
-git checkout master
+cd /cpfs01/nfshome/xgsun/HzyProjects/tmux-agent-status   # 或 clone 后路径
 ./install.sh
-
-# 2. Oh my tmux（若未装）
-git clone --single-branch https://github.com/gpakosz/.tmux.git ~/.local/share/tmux/oh-my-tmux
-ln -sf ~/.local/share/tmux/oh-my-tmux/.tmux.conf ~/.tmux.conf
-cp ~/.local/share/tmux/oh-my-tmux/.tmux.conf.local ~/.tmux.conf.local
-
-# 3. 合并 config/oh-my-tmux.local.snippet → ~/.tmux.conf.local
-#    @HOOKS_DIR@ → ~/.claude/hooks，#!important 段取消注释
-
-# 4. 合并 Claude / Cursor hooks（config/*.json）
-
-# 5. 重载
+# 合并 config/oh-my-tmux.local.snippet → ~/.tmux.conf.local
+#   - status-interval 5
+#   - status_right 前加 #( $HOME/.cursor/hooks/cursor-wait/idle-scan.sh )
+# 合并 config/claude-hooks.json / config/cursor-hooks.json
 tmux source-file ~/.tmux.conf
 ```
 
 ---
 
-## 常用快捷键
+## 快捷键
 
 | 键 | 作用 |
 |----|------|
-| `Ctrl+b w` | 全部窗口列表 |
+| `Ctrl+b w` | 窗口列表 |
 | `Ctrl+b Ctrl+h/l` | 上/下一个窗口 |
-| `Ctrl+b Tab` | 回到上一个活跃窗口 |
-| `Ctrl+b r` | 重载 tmux 配置 |
+| `Ctrl+b Tab` | 上一活跃窗口 |
+| `Ctrl+b r` | 重载配置 |
 
 ---
 
 ## 脚本索引
 
-| 脚本 | 用途 | 当前在用 |
-|------|------|----------|
-| `tmux-agent-status.sh` | hook 入口 | ✅ |
-| `tmux-agent-freshness.sh` | 纯文字时间 badge（Oh my tmux） | ✅ |
-| `tmux-agent-freshness-colored.sh` | 彩色时间 badge（DIY） | DIY |
+| 脚本 | 用途 | 在用 |
+|------|------|------|
+| `tmux-agent-status.sh` | 只写 emoji | ✅ |
+| `cursor-wait/idle-scan.sh` | Cursor 确认框 → ⏸ | ✅（status #()） |
+| `cursor-wait/markers.sh` | 选项白名单 | ✅ |
+| `tmux-agent-freshness.sh` | 纯文字时间 | ✅ Oh my tmux |
+| `tmux-agent-freshness-colored.sh` | 彩色时间 | DIY |
 | `tmux-agent-mark-seen.sh` | 切进标已看 | ✅ |
-| `tmux-agent-ring-bell.sh` | done 响 bell | ✅ |
-| `tmux-agent-demo.sh` | 演示窗口 | 按需 |
-| `tmux-agent-tab-style.sh` 等 | 早期实验 | 未用 |
+| `tmux-agent-ring-bell.sh` | ✅ / 等待响铃 | ✅ |
+| `tmux-agent-demo.sh` | 演示 | 按需 |

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-07-13
+
+- **Cursor wait（极简）**：`hooks/cursor-wait/` 仅在 pane **底部文案静止 ≥4s** 且命中固定选项行时标 ⏸
+  - markers：`Approve mode switch (y)` · `Yes, build locally (b)`
+  - Cursor hooks **仍用** 原来的 `tmux-agent-status.sh` ⚡/✅（无 from-hook / 无静默超时）
+  - 退役：去掉 status-right 里 idle-scan 的 `#()` 即可
+
 ## v1.1.0 — 2026-07-01
 
 Oh my tmux! 集成合并进 `master`；DIY 与 Oh my tmux 配置并存。
