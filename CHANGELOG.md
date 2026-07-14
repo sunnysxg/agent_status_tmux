@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased — 2026-07-14
+
+- Oh my tmux 时间 badge：**仅字色**年龄档（方案 1b：绿 / 灰橙 / 玫瑰灰 / 中灰🗑）；未看整 tab 仍靠 bell
+
 ## Unreleased — 2026-07-13
 
 - **Cursor wait（极简）**：`hooks/cursor-wait/` 仅在 pane **底部文案静止 ≥4s** 且命中固定选项行时标 ⏸

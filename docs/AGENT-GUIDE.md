@@ -82,11 +82,12 @@ tmux status line
 | 状态 | tab | 时间 badge |
 |------|-----|------------|
 | ⚡ / ⏸ | 普通 tab + emoji | 无 |
-| done 未看（不在该 tab） | bell 黄闪 + `!` | 纯文字 `5m` / `4h` / `🗑` |
-| done 未看（正在该 tab） | 无 bell | 纯文字 |
-| done 已看 | 普通 | 纯文字 |
+| done 未看（不在该 tab） | bell 黄闪 + `!` | 年龄字色（见下） |
+| done 未看（正在该 tab） | 无 bell | 年龄字色 |
+| done 已看 | 普通 | 年龄字色 |
 
-新鲜度：30min / 2h / 8h（`tmux-agent-freshness.sh` 纯文字；字色方案另见后续提交）。
+新鲜度分档（`tmux-agent-freshness.sh`，**仅字色**、无底色，避免断 Powerline）：  
+`<30m` 亮绿粗 · `30m–2h` 灰橙 · `2–8h` 玫瑰灰 · `>8h` 中灰 🗑（方案 1b）。
 
 ---
 

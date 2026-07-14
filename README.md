@@ -57,7 +57,7 @@ cd tmux-agent-status
 | `tmux-agent-status.sh` | 核心：只写 emoji（Claude / Cursor hooks） |
 | `cursor-wait/idle-scan.sh` | Cursor：底部静止 + 固定选项文案 → ⏸ |
 | `cursor-wait/markers.sh` | 等待选项白名单 |
-| `tmux-agent-freshness.sh` | 纯文字时间（Oh my tmux） |
+| `tmux-agent-freshness.sh` | 年龄字色时间（Oh my tmux，fg-only） |
 | `tmux-agent-freshness-colored.sh` | 彩色时间（DIY） |
 | `tmux-agent-ring-bell.sh` | done / wait 触发 bell |
 | `tmux-agent-mark-seen.sh` | 切进标已看 |
